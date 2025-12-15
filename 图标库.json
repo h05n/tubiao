@@ -1,23 +1,76 @@
 {
-"name":"图标库",
-"description":"作者：，",
-"icons":
-[
-{"name":"芙莉莲","url":"https://raw.githubusercontent.com/h05n/tubiao/refs/heads/main/图标库/芙莉莲1.png"},
-{"name":"后藤一里","url":"https://raw.githubusercontent.com/h05n/tubiao/refs/heads/main/图标库/后藤一里1.png"},
-{"name":"后藤一里","url":"https://raw.githubusercontent.com/h05n/tubiao/refs/heads/main/图标库/后藤一里2.png"},
-{"name":"后藤一里","url":"https://raw.githubusercontent.com/h05n/tubiao/refs/heads/main/图标库/后藤一里3.png"},
-{"name":"后藤一里","url":"https://raw.githubusercontent.com/h05n/tubiao/refs/heads/main/图标库/后藤一里4.png"},
-{"name":"秋山澪","url":"https://raw.githubusercontent.com/h05n/tubiao/refs/heads/main/图标库/秋山澪1.png"},
-{"name":"山田凉","url":"https://raw.githubusercontent.com/h05n/tubiao/refs/heads/main/图标库/山田凉1.png"},
-{"name":"山田凉","url":"https://raw.githubusercontent.com/h05n/tubiao/refs/heads/main/图标库/山田凉2.png"},
-{"name":"山田凉","url":"https://raw.githubusercontent.com/h05n/tubiao/refs/heads/main/图标库/山田凉3.png"},
-{"name":"喜多郁代","url":"https://raw.githubusercontent.com/h05n/tubiao/refs/heads/main/图标库/喜多郁代1.png"},
-{"name":"喜多郁代","url":"https://raw.githubusercontent.com/h05n/tubiao/refs/heads/main/图标库/喜多郁代2.png"},
-{"name":"喜多郁代","url":"https://raw.githubusercontent.com/h05n/tubiao/refs/heads/main/图标库/喜多郁代3.png"},
-{"name":"伊地知虹夏","url":"https://raw.githubusercontent.com/h05n/tubiao/refs/heads/main/图标库/伊地知虹夏1.png"},
-{"name":"伊地知虹夏","url":"https://raw.githubusercontent.com/h05n/tubiao/refs/heads/main/图标库/伊地知虹夏2.png"},
-{"name":"伊地知虹夏","url":"https://raw.githubusercontent.com/h05n/tubiao/refs/heads/main/图标库/伊地知虹夏3.png"},
-{"name":"自用","url":"https://raw.githubusercontent.com/h05n/tubiao/refs/heads/main/图标库/自用1.png"}
-]
+  "name": "图标库",
+  "description": "作者：，",
+  "icons": [
+    {
+      "name": "芙莉莲",
+      "url": "https://raw.githubusercontent.com/h05n/tubiao/main/图标库/芙莉莲1.png"
+    },
+
+    {
+      "name": "后藤一里",
+      "url": "https://raw.githubusercontent.com/h05n/tubiao/main/图标库/后藤一里1.png"
+    },
+    {
+      "name": "后藤一里",
+      "url": "https://raw.githubusercontent.com/h05n/tubiao/main/图标库/后藤一里2.png"
+    },
+    {
+      "name": "后藤一里",
+      "url": "https://raw.githubusercontent.com/h05n/tubiao/main/图标库/后藤一里3.png"
+    },
+    {
+      "name": "后藤一里",
+      "url": "https://raw.githubusercontent.com/h05n/tubiao/main/图标库/后藤一里4.png"
+    },
+
+    {
+      "name": "秋山澪",
+      "url": "https://raw.githubusercontent.com/h05n/tubiao/main/图标库/秋山澪1.png"
+    },
+
+    {
+      "name": "山田凉",
+      "url": "https://raw.githubusercontent.com/h05n/tubiao/main/图标库/山田凉1.png"
+    },
+    {
+      "name": "山田凉",
+      "url": "https://raw.githubusercontent.com/h05n/tubiao/main/图标库/山田凉2.png"
+    },
+    {
+      "name": "山田凉",
+      "url": "https://raw.githubusercontent.com/h05n/tubiao/main/图标库/山田凉3.png"
+    },
+
+    {
+      "name": "喜多郁代",
+      "url": "https://raw.githubusercontent.com/h05n/tubiao/main/图标库/喜多郁代1.png"
+    },
+    {
+      "name": "喜多郁代",
+      "url": "https://raw.githubusercontent.com/h05n/tubiao/main/图标库/喜多郁代2.png"
+    },
+    {
+      "name": "喜多郁代",
+      "url": "https://raw.githubusercontent.com/h05n/tubiao/main/图标库/喜多郁代3.png"
+    },
+
+    {
+      "name": "伊地知虹夏",
+      "url": "https://raw.githubusercontent.com/h05n/tubiao/main/图标库/伊地知虹夏1.png"
+    },
+    {
+      "name": "伊地知虹夏",
+      "url": "https://raw.githubusercontent.com/h05n/tubiao/main/图标库/伊地知虹夏2.png"
+    },
+    {
+      "name": "伊地知虹夏",
+      "url": "https://raw.githubusercontent.com/h05n/tubiao/main/图标库/伊地知虹夏3.png"
+    },
+
+    {
+      "name": "自用",
+      "url": "https://raw.githubusercontent.com/h05n/tubiao/main/图标库/自用1.png"
+    }
+  ]
 }
