@@ -1,7 +1,13 @@
 name: Sync 图标库.json
 
 on:
-  # push 不写死 main：任何分支有改动都触发，但 job 内部只在“默认分支”上真正执行
+  # ----------------------------------------------------------
+  # 触发条件 1：push 触发
+  # 说明：
+  # - 这里不写死 main/master（因为你以后可能改默认分支名）
+  # - 所以先让所有分支的 push 都可能触发
+  # - 但在 job 内部会判断：只有 push 到“默认分支”才真正执行更新
+  # ----------------------------------------------------------
   push:
     paths:
       - "图标库/**"
@@ -9,66 +15,103 @@ on:
       - ".github/workflows/sync-icons.yml"
       - "图标库.json"
 
-  # 定时兜底（UTC；03:00 UTC ≈ 新加坡 11:00）
+  # ----------------------------------------------------------
+  # 触发条件 2：定时兜底（UTC 时间）
+  # 03:00 UTC ≈ 新加坡/中国 11:00（大概）
+  # 你想改频率就改 cron：比如每 6 小时跑一次：0 */6 * * *
+  # ----------------------------------------------------------
   schedule:
     - cron: "0 3 * * *"
 
-  # 允许手动点击 Run workflow
+  # ----------------------------------------------------------
+  # 触发条件 3：手动触发（Actions 页面 Run workflow）
+  # ----------------------------------------------------------
   workflow_dispatch:
 
+# ----------------------------------------------------------
+# 权限：需要能推送提交（写入仓库内容）
+# ----------------------------------------------------------
 permissions:
   contents: write
 
+# ----------------------------------------------------------
+# 并发控制：
+# - 防止 push / schedule / 手动同时触发互相抢 push
+# - cancel-in-progress=true：新来的会取消旧的
+# ----------------------------------------------------------
 concurrency:
   group: sync-icons
   cancel-in-progress: true
 
 jobs:
   sync:
-    # 跳过 bot 自己提交触发的 push，避免二次空跑
-    if: !(github.event_name == 'push' && github.actor == 'github-actions[bot]')
+    # --------------------------------------------------------
+    # ✅ 关键修复点（你这次报错就在这里）
+    #
+    # 你之前是：if: !(github.event_name == 'push' && github.actor == 'github-actions[bot]')
+    # 这样写 YAML 会把 "!()" 当成 tag，导致：
+    #   Invalid workflow file
+    #   Unexpected tag '!(github.event_name'
+    #
+    # 正确做法：
+    # - 要么用 GitHub Actions 表达式包住：if: ${{ !(...) }}
+    # - 要么用不带 "!" 的等价逻辑（更稳）：
+    #     event_name != push  或  actor != bot
+    # --------------------------------------------------------
+    if: ${{ github.event_name != 'push' || github.actor != 'github-actions[bot]' }}
+
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
     steps:
+      # ------------------------------------------------------
+      # 1) 拉取代码
+      # fetch-depth=0：拿完整历史，方便后面 reset 到远端
+      # ------------------------------------------------------
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
+      # ------------------------------------------------------
+      # 2) 安装 Node（脚本是 node scripts/sync-icons.mjs）
+      # ------------------------------------------------------
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
+      # ------------------------------------------------------
+      # 3) 核心流程：探测默认分支 -> 仅默认分支执行 -> 生成 -> commit -> push
+      # 采用“干净状态重试”策略：每次尝试都 reset 到 origin/默认分支
+      # ------------------------------------------------------
       - name: Sync / Generate / Commit / Push (retry, clean state)
         shell: bash
         run: |
           set -euo pipefail
 
-          # 1) 探测默认分支（不写死 main）
-          #    有些事件里 github.event.repository.default_branch 可能不稳定，
-          #    所以这里用 git 远端 HEAD 做兜底探测。
+          # ----------------------------------------------------
+          # A) 探测默认分支名（不写死 main/master）
+          # 原理：
+          # - 通过 origin/HEAD 指向推断默认分支
+          # - 若失败再兜底用 main（极少数情况）
+          # ----------------------------------------------------
           git fetch origin --prune
-
-          # 尝试更新 origin/HEAD 指向（失败也不致命）
           git remote set-head origin -a || true
 
-          TARGET_BRANCH="${TARGET_BRANCH:-}"
-          if [[ -z "${TARGET_BRANCH}" ]]; then
-            # 读 origin/HEAD，例如 refs/remotes/origin/HEAD -> origin/main
-            TARGET_BRANCH="$(git symbolic-ref -q --short refs/remotes/origin/HEAD || true)"
-            TARGET_BRANCH="${TARGET_BRANCH#origin/}"
-          fi
+          TARGET_BRANCH="$(git symbolic-ref -q --short refs/remotes/origin/HEAD || true)"
+          TARGET_BRANCH="${TARGET_BRANCH#origin/}"
 
-          # 最后兜底：如果还是空，就用 main（极少数情况）
           if [[ -z "${TARGET_BRANCH}" ]]; then
             TARGET_BRANCH="main"
           fi
 
-          echo "Target branch: ${TARGET_BRANCH}"
+          echo "Target branch (default): ${TARGET_BRANCH}"
 
-          # 2) 如果是 push 事件，但 push 的不是默认分支：直接跳过
+          # ----------------------------------------------------
+          # B) 如果这次触发是 push，但 push 的不是默认分支，则跳过
+          # 目的：你在其它分支测试脚本/工作流时，不要把结果提交回默认分支
+          # ----------------------------------------------------
           if [[ "${GITHUB_EVENT_NAME}" == "push" ]]; then
             if [[ "${GITHUB_REF_NAME}" != "${TARGET_BRANCH}" ]]; then
               echo "Push is on '${GITHUB_REF_NAME}', not default '${TARGET_BRANCH}'. Skip."
@@ -76,33 +119,45 @@ jobs:
             fi
           fi
 
-          # 3) 配置 bot 身份
+          # ----------------------------------------------------
+          # C) 配置 bot 身份（用于提交）
+          # ----------------------------------------------------
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # 4) 重试 3 次：每次都回到远端干净状态再生成、提交、push
+          # ----------------------------------------------------
+          # D) 重试机制：解决并发 push 冲突
+          # 每次都回到远端干净状态 => 生成 => 有变化才 commit => push
+          # push 失败就等 2 秒再试
+          # ----------------------------------------------------
           for i in 1 2 3; do
             echo "Attempt $i..."
 
+            # 1) 回到远端默认分支的干净状态（避免 rebase 过程中断残留）
             git fetch origin "${TARGET_BRANCH}"
             git reset --hard "origin/${TARGET_BRANCH}"
 
+            # 2) 运行生成脚本：会更新/生成 图标库.json
             node scripts/sync-icons.mjs
 
+            # 3) 没变化直接结束（说明已经是最新）
             if [[ -z "$(git status --porcelain)" ]]; then
               echo "No changes."
               exit 0
             fi
 
+            # 4) 只提交输出文件，避免误提交其它东西
             git add "图标库.json"
             if git diff --cached --quiet; then
               echo "No staged changes."
               exit 0
             fi
 
+            # 5) commit message 里带 icon 数量，方便你看历史
             ICON_COUNT="$(node -e 'const j=require("./图标库.json"); console.log((j.icons||[]).length)')"
             git commit -m "chore: sync 图标库.json (${ICON_COUNT} icons)"
 
+            # 6) push（指定推到默认分支）
             if git push origin "HEAD:${TARGET_BRANCH}"; then
               echo "Push success."
               exit 0
